@@ -1,5 +1,19 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
-module Logging (logTrace, logDebug, logInfo, logWarn, logError, LogRecord(..), LogLevel(..), setLogSink, defaultLogSink) where
+module Logging (
+  logTrace
+, logDebug
+, logInfo
+, logWarn
+, logError
+, LogRecord
+, logChannel
+, logLevel
+, logMessage
+, logLocationInfo
+, LogLevel (..)
+, setLogSink
+, defaultLogSink
+) where
 
 import           Language.Haskell.TH
 import           Language.Haskell.TH.Syntax
@@ -12,6 +26,7 @@ import           Data.IORef
 import           Foreign (unsafePerformIO)
 
 import           DynamicSpec (format)
+import           Util (stripVersion)
 
 data LogLevel = TRACE | DEBUG | INFO | WARN | ERROR
   deriving Show
@@ -24,7 +39,8 @@ instance Lift LogLevel where
   lift ERROR = [|ERROR|]
 
 data LogRecord = LogRecord {
-  logLevel        :: LogLevel
+  logChannel      :: Text
+, logLevel        :: LogLevel
 , logMessage      :: [Text]
 , logLocationInfo :: Text
 } deriving Show
@@ -44,16 +60,17 @@ consumeLogRecord m = do
 
 -- | Write log messages to stdout.
 defaultLogSink :: LogRecord -> IO ()
-defaultLogSink (LogRecord level message linfo) =
+defaultLogSink (LogRecord _ level message linfo) =
   Text.putStrLn $ Text.concat $ Text.pack (show level) : " " : linfo : ": " : message
 
 createLogRecord :: LogLevel -> String -> Q Exp
 createLogRecord level message = do
   loc <- location
+  let channel = (stripVersion $ loc_package loc) ++ "." ++ loc_module loc
   let filename = loc_filename loc
   let (line, _) = loc_start loc
-  let linfo = filename ++ ':' : show line
-  [| LogRecord level $(format message) (Text.pack linfo) |]
+  let linfo = filename ++ ":" ++ show line
+  [| LogRecord (Text.pack channel) level $(format message) (Text.pack linfo) |]
 
 logTrace, logDebug, logInfo, logWarn, logError :: String -> ExpQ
 logTrace message = [| consumeLogRecord $(createLogRecord TRACE message) |]

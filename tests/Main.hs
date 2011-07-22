@@ -1,31 +1,10 @@
-{-# LANGUAGE TemplateHaskell #-}
-module Main where
-import Test.Framework.TH (defaultMainGenerator)
-import Test.Framework.Providers.HUnit
-import Test.Framework.Providers.QuickCheck2
+module Main (main) where
 
-import Test.HUnit
-import Test.QuickCheck
+import           Test.Framework (defaultMain)
+import           Test.Framework.Providers.DocTest
 
-import DynamicSpec
+import qualified DynamicSpecTest
 
-import Text.ParserCombinators.ReadP
-
-main = $(defaultMainGenerator)
-
-instance Arbitrary Literal where
-  arbitrary = do
-    s <- arbitrary `suchThat` (not . elem '{')
-    return (Literal s)
-
-instance Arbitrary Capture where
-  arbitrary = do
-    s <- arbitrary `suchThat` (not . null) `suchThat` (not . elem '}')
-    return (Capture s)
-
-prop_parse t = (parse . render) t == Just t
-  where
-    render (Literal s, x) = s ++ render_ x
-      where
-        render_ [] = ""
-        render_ ((Capture c, Literal s) : xs) = concat ["{", c, "}", s, render_ xs]
+main = do
+  doctests <- docTest ["Util", "DynamicSpec"] ["-i../src"]
+  defaultMain [doctests, DynamicSpecTest.tests]
