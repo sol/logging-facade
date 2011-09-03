@@ -7,7 +7,6 @@ import           Data.Maybe
 import           Data.Typeable
 import           Control.Applicative hiding (many)
 
-import           Data.Text   (Text)
 import qualified Data.Text as Text
 
 import           Text.ParserCombinators.ReadP
@@ -20,26 +19,26 @@ import           Text.ParserCombinators.ReadP
 -- Example:
 --
 -- >>> :set -fth
--- >>> import Data.Text as T
 -- >>> let x = "bar"
 -- >>> let y = 23
--- >>> T.concat $(format "foo {x} {y} baz")
+-- >>> $(format "foo {x} {y} baz") []
 -- "foo bar 23 baz"
 format :: String -> Q Exp
 format s =
   case parse s of
     Nothing -> fail ("Invalid format string: " ++ show s)
-    Just (Literal x, xs) -> [|Text.pack x : $(format_ xs)|]
+    Just (Literal x, xs) -> [|showString x . $(format_ xs)|]
   where
-    format_ [] = [|[]|]
-    format_ ((Capture c, Literal x) : xs) = [|formatValue $(dyn c) : Text.pack x : $(format_ xs)|]
+    format_ [] = [|id|]
+    format_ ((Capture c, Literal x) : xs) = [|formatValue $(dyn c) . showString x . $(format_ xs)|]
 
-formatValue :: (Typeable a, Show a) => a -> Text
-formatValue a = fromMaybe (Text.pack $ show a) (formatValue_ a)
+formatValue :: (Typeable a, Show a) => a -> ShowS
+formatValue x = fromMaybe (showString $ show x) (mstring <|> mtext)
+  where
+    -- special formating rules for Text and String
+    mstring = showString <$> cast x
+    mtext = showString . Text.unpack <$> cast x
 
--- | Special formating rules for Text and String
-formatValue_ :: Typeable a => a -> Maybe Text
-formatValue_ a = (cast a) <|> Text.pack <$> cast a
 
 type Spec = (Literal, [(Capture, Literal)])
 newtype Literal = Literal String deriving (Eq, Show)

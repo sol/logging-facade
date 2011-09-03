@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 module Logging (
   logTrace
 , logDebug
@@ -18,10 +18,6 @@ module Logging (
 import           Language.Haskell.TH
 import           Language.Haskell.TH.Syntax
 
-import           Data.Text (Text)
-import qualified Data.Text as Text
-import qualified Data.Text.IO as Text
-
 import           Data.IORef
 import           Foreign (unsafePerformIO)
 
@@ -39,11 +35,11 @@ instance Lift LogLevel where
   lift ERROR = [|ERROR|]
 
 data LogRecord = LogRecord {
-  logChannel      :: Text
+  logChannel      :: String
 , logLevel        :: LogLevel
-, logMessage      :: [Text]
-, logLocationInfo :: Text
-} deriving Show
+, logMessage      :: ShowS
+, logLocationInfo :: String
+}
 
 -- We use the unsafePerformIO hack to share one sink across a process.
 logSink :: IORef (LogRecord -> IO ())
@@ -61,7 +57,7 @@ consumeLogRecord m = do
 -- | Write log messages to stdout.
 defaultLogSink :: LogRecord -> IO ()
 defaultLogSink (LogRecord _ level message linfo) =
-  Text.putStrLn $ Text.concat $ Text.pack (show level) : " " : linfo : ": " : message
+  putStrLn $ show level ++ " " ++ linfo ++ ": " ++ message []
 
 createLogRecord :: LogLevel -> String -> Q Exp
 createLogRecord level message = do
@@ -70,7 +66,7 @@ createLogRecord level message = do
   let filename = loc_filename loc
   let (line, _) = loc_start loc
   let linfo = filename ++ ":" ++ show line
-  [| LogRecord (Text.pack channel) level $(format message) (Text.pack linfo) |]
+  [| LogRecord channel level $(format message) linfo |]
 
 logTrace, logDebug, logInfo, logWarn, logError :: String -> ExpQ
 logTrace message = [| consumeLogRecord $(createLogRecord TRACE message) |]
