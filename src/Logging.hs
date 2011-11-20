@@ -21,7 +21,7 @@ import           Language.Haskell.TH.Syntax
 import           Data.IORef
 import           Foreign (unsafePerformIO)
 
-import           DynamicSpec (format)
+import           Text.Format (formatS)
 import           Util (stripVersion)
 
 data LogLevel = TRACE | DEBUG | INFO | WARN | ERROR
@@ -66,7 +66,7 @@ createLogRecord level message = do
   let filename = loc_filename loc
   let (line, _) = loc_start loc
   let linfo = filename ++ ":" ++ show line
-  [| LogRecord channel level $(format message) linfo |]
+  [| LogRecord channel level $(formatS message) linfo |]
 
 logTrace, logDebug, logInfo, logWarn, logError :: String -> ExpQ
 logTrace message = [| consumeLogRecord $(createLogRecord TRACE message) |]

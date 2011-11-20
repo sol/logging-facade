@@ -15,9 +15,9 @@ library
   exposed-modules:
       Logging
   other-modules:
-      DynamicSpec
       Util
   build-depends:
       base       >= 4.0  && < 4.4
     , template-haskell
     , text
+    , format
