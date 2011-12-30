@@ -20,6 +20,8 @@ module Logging (
 import           Prelude hiding (error, undefined)
 import qualified Prelude
 
+import           System.IO (hPutStrLn, stderr)
+
 import           Language.Haskell.TH
 import           Language.Haskell.TH.Syntax
 
@@ -59,10 +61,10 @@ consumeLogRecord m = do
   sink <- readIORef logSink
   sink m
 
--- | Write log messages to stdout.
+-- | Write log messages to stderr.
 defaultLogSink :: LogRecord -> IO ()
 defaultLogSink (LogRecord _ level message linfo) =
-  putStrLn $ show level ++ " " ++ linfo ++ ": " ++ message []
+  hPutStrLn stderr $ show level ++ " " ++ linfo ++ ": " ++ message []
 
 createLogRecord :: LogLevel -> String -> Q Exp
 createLogRecord level message = do
