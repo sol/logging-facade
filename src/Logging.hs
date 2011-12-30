@@ -13,7 +13,12 @@ module Logging (
 , LogLevel (..)
 , setLogSink
 , defaultLogSink
+, error
+, undefined
 ) where
+
+import           Prelude hiding (error, undefined)
+import qualified Prelude
 
 import           Language.Haskell.TH
 import           Language.Haskell.TH.Syntax
@@ -74,3 +79,12 @@ logDebug message = [| consumeLogRecord $(createLogRecord DEBUG message) |]
 logInfo  message = [| consumeLogRecord $(createLogRecord INFO  message) |]
 logWarn  message = [| consumeLogRecord $(createLogRecord WARN  message) |]
 logError message = [| consumeLogRecord $(createLogRecord ERROR message) |]
+
+emitError :: LogRecord -> a
+emitError m = Prelude.error $ logMessage m (" (" ++ logLocationInfo m ++ ")")
+
+error :: String -> Q Exp
+error message = [|emitError $(createLogRecord ERROR message)|]
+
+undefined :: Q Exp
+undefined = [|$(error "undefined")|]
