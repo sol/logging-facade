@@ -32,7 +32,7 @@ import           Text.Format (formatS)
 import           Util (stripVersion)
 
 data LogLevel = TRACE | DEBUG | INFO | WARN | ERROR
-  deriving Show
+  deriving (Eq, Show)
 
 instance Lift LogLevel where
   lift TRACE = [|TRACE|]
