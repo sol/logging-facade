@@ -9,7 +9,8 @@ module Logging (
 , logChannel
 , logLevel
 , logMessage
-, logLocationInfo
+, logLocation
+, formatLocation
 , LogLevel (..)
 , setLogSink
 , defaultLogSink
@@ -29,18 +30,11 @@ import qualified Language.Haskell.TH.Syntax as TH
 import           Data.IORef
 import           Foreign (unsafePerformIO)
 
-import           Text.Format (formatS)
+import           Text.Format (formatS, format)
 import           Util (stripVersion)
 
 -- | Compatibility function for old LogRecord format
-logLocationInfo :: LogRecord -> String
-logLocationInfo m = filename ++ ":" ++ show line
-  where
-    loc = logLocation m
-    filename = locationFilename loc
-    line = locationLine loc
-
--- | Compatibility function for old LogRecord format
+logChannel :: LogRecord -> String
 logChannel m = let loc = logLocation m in
   (stripVersion $ locationPackage loc) ++ "." ++ locationModule loc
 
@@ -68,14 +62,17 @@ data Location = Location {
 , locationColumn    :: Int
 }
 
+formatLocation :: Location -> ShowS
+formatLocation (Location filename _ _ line _) = $(formatS "{filename}:{line}")
+
 location :: Q Exp
 location = do
   loc <- TH.location
   let filename = loc_filename loc
   let package = loc_package loc
-  let mod = loc_module loc
+  let module_ = loc_module loc
   let (line, column) = loc_start loc
-  [|Location filename package mod line column|]
+  [|Location filename package module_ line column|]
 
 -- We use the unsafePerformIO hack to share one sink across a process.
 logSink :: IORef (LogRecord -> IO ())
@@ -93,11 +90,11 @@ consumeLogRecord m = do
 -- | Write log messages to stderr.
 defaultLogSink :: LogRecord -> IO ()
 defaultLogSink m =
-  hPutStrLn stderr $ show level ++ " " ++ linfo ++ ": " ++ message ""
+  hPutStrLn stderr $(format "{level} {linfo}: {message}")
   where
     level = logLevel m
     message = logMessage m
-    linfo = logLocationInfo m
+    linfo = formatLocation (logLocation m)
 
 createLogRecord :: LogLevel -> String -> Q Exp
 createLogRecord level message = [|LogRecord level $(formatS message) $(location)|]
@@ -109,11 +106,13 @@ logInfo  message = [| consumeLogRecord $(createLogRecord INFO  message) |]
 logWarn  message = [| consumeLogRecord $(createLogRecord WARN  message) |]
 logError message = [| consumeLogRecord $(createLogRecord ERROR message) |]
 
-emitError :: LogRecord -> a
-emitError m = Prelude.error $ logMessage m (" (" ++ logLocationInfo m ++ ")")
+emitError :: Location -> ShowS -> a
+emitError loc m = Prelude.error $(format "{m} ({linfo})")
+  where
+    linfo = formatLocation loc
 
 error :: String -> Q Exp
-error message = [|emitError $(createLogRecord ERROR message)|]
+error message = [|emitError $(location) $(formatS message)|]
 
 undefined :: Q Exp
 undefined = [|$(error "undefined")|]
