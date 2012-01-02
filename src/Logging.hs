@@ -5,15 +5,25 @@ module Logging (
 , logInfo
 , logWarn
 , logError
+
 , LogRecord
-, logChannel
 , logLevel
 , logMessage
 , logLocation
-, formatLocation
+
 , LogLevel (..)
+
+, Location
+, locationFilename
+, locationPackage
+, locationModule
+, locationLine
+, locationColumn
+, formatLocation
+
 , setLogSink
 , defaultLogSink
+
 , error
 , undefined
 ) where
@@ -31,12 +41,6 @@ import           Data.IORef
 import           Foreign (unsafePerformIO)
 
 import           Text.Format (formatS, format)
-import           Util (stripVersion)
-
--- | Compatibility function for old LogRecord format
-logChannel :: LogRecord -> String
-logChannel m = let loc = logLocation m in
-  (stripVersion $ locationPackage loc) ++ "." ++ locationModule loc
 
 data LogLevel = TRACE | DEBUG | INFO | WARN | ERROR
   deriving (Eq, Show)

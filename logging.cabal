@@ -17,5 +17,3 @@ library
     , format
   exposed-modules:
       Logging
-  other-modules:
-      Util
