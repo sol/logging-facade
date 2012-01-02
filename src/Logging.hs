@@ -22,14 +22,27 @@ import qualified Prelude
 
 import           System.IO (hPutStrLn, stderr)
 
-import           Language.Haskell.TH
-import           Language.Haskell.TH.Syntax
+import           Language.Haskell.TH hiding (location)
+import           Language.Haskell.TH.Syntax hiding (location)
+import qualified Language.Haskell.TH.Syntax as TH
 
 import           Data.IORef
 import           Foreign (unsafePerformIO)
 
 import           Text.Format (formatS)
 import           Util (stripVersion)
+
+-- | Compatibility function for old LogRecord format
+logLocationInfo :: LogRecord -> String
+logLocationInfo m = filename ++ ":" ++ show line
+  where
+    loc = logLocation m
+    filename = locationFilename loc
+    line = locationLine loc
+
+-- | Compatibility function for old LogRecord format
+logChannel m = let loc = logLocation m in
+  (stripVersion $ locationPackage loc) ++ "." ++ locationModule loc
 
 data LogLevel = TRACE | DEBUG | INFO | WARN | ERROR
   deriving (Eq, Show)
@@ -42,11 +55,27 @@ instance Lift LogLevel where
   lift ERROR = [|ERROR|]
 
 data LogRecord = LogRecord {
-  logChannel      :: String
-, logLevel        :: LogLevel
-, logMessage      :: ShowS
-, logLocationInfo :: String
+  logLevel    :: LogLevel
+, logMessage  :: ShowS
+, logLocation :: Location
 }
+
+data Location = Location {
+  locationFilename  :: String
+, locationPackage   :: String
+, locationModule    :: String
+, locationLine      :: Int
+, locationColumn    :: Int
+}
+
+location :: Q Exp
+location = do
+  loc <- TH.location
+  let filename = loc_filename loc
+  let package = loc_package loc
+  let mod = loc_module loc
+  let (line, column) = loc_start loc
+  [|Location filename package mod line column|]
 
 -- We use the unsafePerformIO hack to share one sink across a process.
 logSink :: IORef (LogRecord -> IO ())
@@ -63,17 +92,15 @@ consumeLogRecord m = do
 
 -- | Write log messages to stderr.
 defaultLogSink :: LogRecord -> IO ()
-defaultLogSink (LogRecord _ level message linfo) =
-  hPutStrLn stderr $ show level ++ " " ++ linfo ++ ": " ++ message []
+defaultLogSink m =
+  hPutStrLn stderr $ show level ++ " " ++ linfo ++ ": " ++ message ""
+  where
+    level = logLevel m
+    message = logMessage m
+    linfo = logLocationInfo m
 
 createLogRecord :: LogLevel -> String -> Q Exp
-createLogRecord level message = do
-  loc <- location
-  let channel = (stripVersion $ loc_package loc) ++ "." ++ loc_module loc
-  let filename = loc_filename loc
-  let (line, _) = loc_start loc
-  let linfo = filename ++ ":" ++ show line
-  [| LogRecord channel level $(formatS message) linfo |]
+createLogRecord level message = [|LogRecord level $(formatS message) $(location)|]
 
 logTrace, logDebug, logInfo, logWarn, logError :: String -> ExpQ
 logTrace message = [| consumeLogRecord $(createLogRecord TRACE message) |]

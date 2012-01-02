@@ -2,7 +2,7 @@ name:             logging
 version:          0.0.0
 license:          MIT
 license-file:     LICENSE
-copyright:        (c) 2011 Simon Hengel
+copyright:        (c) 2011, 2012 Simon Hengel
 author:           Simon Hengel
 maintainer:       Simon Hengel <sol@typeful.net>
 build-type:       Simple
