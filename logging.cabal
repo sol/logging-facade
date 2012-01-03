@@ -15,5 +15,9 @@ library
       base
     , template-haskell
     , format
+    , transformers
   exposed-modules:
       Logging
+      Logging.Type
+  other-modules:
+      Logging.Maybe
