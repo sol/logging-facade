@@ -16,7 +16,7 @@ spec = do
     it "writes a log message with log level INFO" $ do
       ref <- newIORef []
       let captureLogMessage :: LogSink
-          captureLogMessage level location message = modifyIORef ref ((level, location, message) :)
+          captureLogMessage record = modifyIORef ref (record :)
       setLogSink captureLogMessage
       info "some log message"
-      readIORef ref `shouldReturn` [(INFO, Nothing, "some log message")]
+      readIORef ref `shouldReturn` [LogRecord INFO Nothing "some log message"]

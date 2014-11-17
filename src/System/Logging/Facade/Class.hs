@@ -3,10 +3,13 @@ module System.Logging.Facade.Class where
 import           System.Logging.Facade.Types
 import           System.Logging.Facade.Sink
 
+-- | A type class for monads with logging support
 class Monad m => Logging m where
-  log :: LogLevel -> Maybe Location -> String -> m ()
+  consumeLogRecord :: LogRecord -> m ()
 
+-- | Log messages that are produced in the `IO` monad are consumed by the
+-- global `LogSink`.
 instance Logging IO where
-  log level location message = do
+  consumeLogRecord record = do
     sink <- getLogSink
-    sink level location message
+    sink record

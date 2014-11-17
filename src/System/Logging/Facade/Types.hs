@@ -10,3 +10,9 @@ data Location = Location {
 , locationLine :: Int
 , locationColumn :: Int
 } deriving (Eq, Show)
+
+data LogRecord = LogRecord {
+  logRecordLevel :: LogLevel
+, logRecordLocation :: Maybe Location
+, logRecordMessage :: String
+} deriving (Eq, Show)

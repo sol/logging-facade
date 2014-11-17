@@ -11,25 +11,29 @@ import           System.IO.Unsafe (unsafePerformIO)
 
 import           System.Logging.Facade.Types
 
-type LogSink = LogLevel -> Maybe Location -> String -> IO ()
+-- | A consumer for log records
+type LogSink = LogRecord -> IO ()
 
 -- use the unsafePerformIO hack to share one sink across a process
 logSink :: IORef LogSink
 logSink = unsafePerformIO (newIORef defaultLogSink)
 {-# NOINLINE logSink #-}
 
--- | Return the global `LogSink`.
+-- | Return the global log sink.
 getLogSink :: IO LogSink
 getLogSink = readIORef logSink
 
--- | Set the global `LogSink`.
+-- | Set the global log sink.
 setLogSink :: LogSink -> IO ()
 setLogSink = atomicWriteIORef logSink
 
--- | Write log messages to stderr.
+-- | A log sink that writes log messages to `stderr`
 defaultLogSink :: LogSink
-defaultLogSink level mLocation message = hPutStrLn stderr output
+defaultLogSink record = hPutStrLn stderr output
   where
+    level = logRecordLevel record
+    mLocation = logRecordLocation record
+    message = logRecordMessage record
     output = shows level . location . showString ": " . showString message $ ""
     location = maybe (showString "") ((showString " " .) . formatLocation) mLocation
 
