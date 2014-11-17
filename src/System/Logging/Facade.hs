@@ -3,7 +3,8 @@
 --
 -- > import qualified System.Logging.Facade as Log
 module System.Logging.Facade (
-  trace
+  Logging
+, trace
 , debug
 , info
 , warn

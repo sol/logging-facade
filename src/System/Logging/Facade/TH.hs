@@ -4,7 +4,8 @@
 --
 -- > import qualified System.Logging.Facade.TH as Log
 module System.Logging.Facade.TH (
-  trace
+  Logging
+, trace
 , debug
 , info
 , warn
