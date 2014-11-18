@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -fno-warn-deprecations #-} -- to suppress deprecation warning for ErrorT
 module System.Logging.Facade.Class where
 
 import           Data.Monoid
