@@ -1,7 +1,7 @@
 name:             logging-facade
 version:          0.0.0
-synopsis:         Simple logging abstraction that allows multiple backends
-description:      Simple logging abstraction that allows multiple backends
+synopsis:         Simple logging abstraction that allows multiple back-ends
+description:      Simple logging abstraction that allows multiple back-ends
 license:          MIT
 license-file:     LICENSE
 copyright:        (c) 2014 Simon Hengel
