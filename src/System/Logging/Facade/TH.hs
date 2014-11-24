@@ -76,4 +76,4 @@ mkLocation = do
       package = loc_package loc
       mod = loc_module loc
       (line, column) = loc_start loc
-  [|Just (Location {locationFile = file, locationPackage = package, locationModule =  mod, locationLine = line, locationColumn = column})|]
+  [|Just (Location {locationPackage = package, locationModule = mod, locationFile = file, locationLine = line, locationColumn = column})|]
