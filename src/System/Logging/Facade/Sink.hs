@@ -1,14 +1,17 @@
 module System.Logging.Facade.Sink (
   LogSink
 , defaultLogSink
-, setLogSink
 , getLogSink
+, setLogSink
+, swapLogSink
+, withLogSink
 ) where
 
 import           Control.Concurrent
 import           Data.IORef
 import           System.IO
 import           System.IO.Unsafe (unsafePerformIO)
+import           Control.Exception
 
 import           System.Logging.Facade.Types
 
@@ -27,6 +30,16 @@ getLogSink = readIORef logSink
 -- | Set the global log sink.
 setLogSink :: LogSink -> IO ()
 setLogSink = atomicWriteIORef logSink
+
+-- | Return the global log sink and set it to a new value in one atomic
+-- operation.
+swapLogSink :: LogSink -> IO LogSink
+swapLogSink new = atomicModifyIORef logSink $ \old -> (new, old)
+
+-- | Set the global log sink to a specified value, run given action, and
+-- finally restore the global log sink to its previous value.
+withLogSink :: LogSink -> IO () -> IO ()
+withLogSink sink action = bracket (swapLogSink sink) setLogSink (const action)
 
 -- | A thread-safe log sink that writes log messages to `stderr`
 defaultLogSink :: IO LogSink

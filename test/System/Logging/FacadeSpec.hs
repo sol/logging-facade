@@ -1,7 +1,6 @@
 module System.Logging.FacadeSpec (main, spec) where
 
-import           Test.Hspec
-import           Data.IORef
+import           Helper
 
 import           System.Logging.Facade.Types
 import           System.Logging.Facade.Sink
@@ -14,9 +13,6 @@ spec :: Spec
 spec = do
   describe "info" $ do
     it "writes a log message with log level INFO" $ do
-      ref <- newIORef []
-      let captureLogMessage :: LogSink
-          captureLogMessage record = modifyIORef ref (record {logRecordLocation = Nothing} :)
-      setLogSink captureLogMessage
-      info "some log message"
-      readIORef ref `shouldReturn` [LogRecord INFO Nothing "some log message"]
+      (logRecords, spy) <- logSinkSpy
+      withLogSink spy (info "some log message")
+      logRecords `shouldReturn` [LogRecord INFO Nothing "some log message"]
