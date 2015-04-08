@@ -3,8 +3,10 @@ module System.Logging.Facade.Sink (
 , defaultLogSink
 , setLogSink
 , getLogSink
+, captureLogs
 ) where
 
+import           Control.Exception
 import           Data.IORef
 import           System.IO
 import           System.IO.Unsafe (unsafePerformIO)
@@ -40,3 +42,20 @@ defaultLogSink record = hPutStrLn stderr output
 formatLocation :: Location -> ShowS
 formatLocation loc = showString (locationFile loc) . colon . shows (locationLine loc) . colon . shows (locationColumn loc)
   where colon = showString ":"
+
+-- | Capture all logs produced by an IO action.
+-- Logs are kept in memory.
+captureLogs :: IO a -> IO ([LogRecord], a)
+captureLogs action = bracket enter exit act
+  where
+    logToRef ref record = atomicModifyIORef' ref $ \logs -> (record : logs, ())
+    enter = do
+      oldSink <- getLogSink
+      ref <- newIORef []
+      setLogSink $ logToRef ref
+      return (oldSink, ref)
+    exit (oldSink, _) = setLogSink oldSink
+    act (_, ref)  = do
+      val <- action
+      logs <- readIORef ref
+      return (reverse logs, val)
