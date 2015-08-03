@@ -2,16 +2,15 @@
 {-# OPTIONS_GHC -fno-warn-deprecations #-} -- to suppress deprecation warning for ErrorT
 module System.Logging.Facade.Class where
 
-import           Data.Monoid
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Cont
 import           Control.Monad.Trans.Error
 import           Control.Monad.Trans.Identity
 import           Control.Monad.Trans.List
 import           Control.Monad.Trans.Maybe
-import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.RWS.Lazy
 import qualified Control.Monad.Trans.RWS.Strict as Strict
+import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.State.Lazy
 import qualified Control.Monad.Trans.State.Strict as Strict
 import           Control.Monad.Trans.Writer.Lazy
@@ -21,8 +20,12 @@ import qualified Control.Monad.Trans.Writer.Strict as Strict
 import           Control.Monad.Trans.Except
 #endif
 
-import           System.Logging.Facade.Types
+#if !MIN_VERSION_base(4,8,0)
+import           Data.Monoid
+#endif
+
 import           System.Logging.Facade.Sink
+import           System.Logging.Facade.Types
 
 -- | A type class for monads with logging support
 class Monad m => Logging m where

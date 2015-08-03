@@ -1,3 +1,8 @@
+{-# LANGUAGE CPP #-}
+#if MIN_VERSION_base(4,8,1)
+#define HAS_SOURCE_LOCATIONS
+{-# LANGUAGE ImplicitParams #-}
+#endif
 -- |
 -- This module is intended to be imported qualified:
 --
@@ -21,26 +26,43 @@ import           Prelude hiding (log, error)
 import           System.Logging.Facade.Types
 import           System.Logging.Facade.Class
 
+#ifdef HAS_SOURCE_LOCATIONS
+import           GHC.SrcLoc
+import           GHC.Stack
+#define with_loc (?loc :: CallStack) =>
+#else
+#define with_loc
+#endif
+
 -- | Produce a log message with specified log level.
-log :: Logging m => LogLevel -> String -> m ()
-log level message = consumeLogRecord (LogRecord level Nothing message)
+log :: with_loc Logging m => LogLevel -> String -> m ()
+log level message = consumeLogRecord (LogRecord level location message)
+  where
+    location :: Maybe Location
+#ifdef HAS_SOURCE_LOCATIONS
+    location = case reverse (getCallStack ?loc) of
+      (_, loc) : _ -> Just $ Location (srcLocPackage loc) (srcLocModule loc) (srcLocFile loc) (srcLocStartLine loc) (srcLocStartCol loc)
+      _ -> Nothing
+#else
+    location = Nothing
+#endif
 
 -- | Produce a log message with log level `TRACE`.
-trace :: Logging m => String -> m ()
+trace :: with_loc Logging m => String -> m ()
 trace = log TRACE
 
 -- | Produce a log message with log level `DEBUG`.
-debug :: Logging m => String -> m ()
+debug :: with_loc Logging m => String -> m ()
 debug = log DEBUG
 
 -- | Produce a log message with log level `INFO`.
-info :: Logging m => String -> m ()
+info :: with_loc Logging m => String -> m ()
 info = log INFO
 
 -- | Produce a log message with log level `WARN`.
-warn :: Logging m => String -> m ()
+warn :: with_loc Logging m => String -> m ()
 warn = log WARN
 
 -- | Produce a log message with log level `ERROR`.
-error :: Logging m => String -> m ()
+error :: with_loc Logging m => String -> m ()
 error = log ERROR

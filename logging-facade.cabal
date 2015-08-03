@@ -21,7 +21,6 @@ library
   exposed-modules:
       System.Logging.Facade
       System.Logging.Facade.Sink
-      System.Logging.Facade.TH
       System.Logging.Facade.Class
       System.Logging.Facade.Types
   build-depends:
