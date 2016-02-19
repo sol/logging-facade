@@ -27,7 +27,9 @@ import           System.Logging.Facade.Types
 import           System.Logging.Facade.Class
 
 #ifdef HAS_SOURCE_LOCATIONS
+#if ! MIN_VERSION_base(4,9,0)
 import           GHC.SrcLoc
+#endif
 import           GHC.Stack
 #define with_loc (?loc :: CallStack) =>
 #else
