@@ -1,7 +1,7 @@
 module System.Logging.Facade.Types where
 
 data LogLevel = TRACE | DEBUG | INFO | WARN | ERROR
-  deriving (Eq, Show, Ord, Bounded, Enum)
+  deriving (Eq, Show, Read, Ord, Bounded, Enum)
 
 data Location = Location {
   locationPackage :: String
