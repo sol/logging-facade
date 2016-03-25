@@ -5,6 +5,7 @@ module System.Logging.Facade.Sink (
 , getLogSink
 ) where
 
+import           Control.Concurrent
 import           Data.IORef
 import           System.IO
 import           System.IO.Unsafe (unsafePerformIO)
@@ -16,7 +17,7 @@ type LogSink = LogRecord -> IO ()
 
 -- use the unsafePerformIO hack to share one sink across a process
 logSink :: IORef LogSink
-logSink = unsafePerformIO (newIORef defaultLogSink)
+logSink = unsafePerformIO (defaultLogSink >>= newIORef)
 {-# NOINLINE logSink #-}
 
 -- | Return the global log sink.
@@ -27,9 +28,12 @@ getLogSink = readIORef logSink
 setLogSink :: LogSink -> IO ()
 setLogSink = atomicWriteIORef logSink
 
--- | A log sink that writes log messages to `stderr`
-defaultLogSink :: LogSink
-defaultLogSink record = hPutStrLn stderr output
+-- | A thread-safe log sink that writes log messages to `stderr`
+defaultLogSink :: IO LogSink
+defaultLogSink = defaultLogSink_ `fmap` newMVar ()
+
+defaultLogSink_ :: MVar () -> LogSink
+defaultLogSink_ mvar record = withMVar mvar (\() -> hPutStrLn stderr output)
   where
     level = logRecordLevel record
     mLocation = logRecordLocation record
