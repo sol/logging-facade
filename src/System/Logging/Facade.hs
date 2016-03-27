@@ -17,14 +17,13 @@ module System.Logging.Facade (
 , error
 
 -- * Types
-, Logging
 , LogLevel(..)
 ) where
 
 import           Prelude hiding (log, error)
 
 import           System.Logging.Facade.Types
-import           System.Logging.Facade.Class
+import           System.Logging.Facade.Sink
 
 #ifdef HAS_SOURCE_LOCATIONS
 #if ! MIN_VERSION_base(4,9,0)
@@ -37,8 +36,10 @@ import           GHC.Stack
 #endif
 
 -- | Produce a log message with specified log level.
-log :: with_loc Logging m => LogLevel -> String -> m ()
-log level message = consumeLogRecord (LogRecord level location message)
+log :: with_loc LogLevel -> String -> IO ()
+log level message = do
+  sink <- getLogSink
+  sink (LogRecord level location message)
   where
     location :: Maybe Location
 #ifdef HAS_SOURCE_LOCATIONS
@@ -50,21 +51,21 @@ log level message = consumeLogRecord (LogRecord level location message)
 #endif
 
 -- | Produce a log message with log level `TRACE`.
-trace :: with_loc Logging m => String -> m ()
+trace :: with_loc String -> IO ()
 trace = log TRACE
 
 -- | Produce a log message with log level `DEBUG`.
-debug :: with_loc Logging m => String -> m ()
+debug :: with_loc String -> IO ()
 debug = log DEBUG
 
 -- | Produce a log message with log level `INFO`.
-info :: with_loc Logging m => String -> m ()
+info :: with_loc String -> IO ()
 info = log INFO
 
 -- | Produce a log message with log level `WARN`.
-warn :: with_loc Logging m => String -> m ()
+warn :: with_loc String -> IO ()
 warn = log WARN
 
 -- | Produce a log message with log level `ERROR`.
-error :: with_loc Logging m => String -> m ()
+error :: with_loc String -> IO ()
 error = log ERROR

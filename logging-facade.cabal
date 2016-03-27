@@ -27,12 +27,10 @@ library
       src
   exposed-modules:
       System.Logging.Facade
-      System.Logging.Facade.Class
       System.Logging.Facade.Sink
       System.Logging.Facade.Types
   build-depends:
       base == 4.*
-    , transformers
   default-language: Haskell2010
 
 test-suite spec

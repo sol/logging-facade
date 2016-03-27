@@ -17,7 +17,6 @@ library:
   source-dirs: src
   dependencies:
     - base == 4.*
-    - transformers
 
 tests:
   spec:
