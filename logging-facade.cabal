@@ -23,11 +23,12 @@ source-repository head
 
 library
   ghc-options: -Wall
-  hs-source-dirs: src
+  hs-source-dirs:
+      src
   exposed-modules:
       System.Logging.Facade
-      System.Logging.Facade.Sink
       System.Logging.Facade.Class
+      System.Logging.Facade.Sink
       System.Logging.Facade.Types
   build-depends:
       base == 4.*
@@ -37,9 +38,12 @@ library
 test-suite spec
   type: exitcode-stdio-1.0
   ghc-options: -Wall
-  hs-source-dirs: test
+  hs-source-dirs:
+      test
   main-is: Spec.hs
   other-modules:
+      Helper
+      System.Logging.Facade.SinkSpec
       System.Logging.FacadeSpec
   build-depends:
       base == 4.*
