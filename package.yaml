@@ -1,0 +1,29 @@
+name:             logging-facade
+version:          0.1.1
+synopsis:         Simple logging abstraction that allows multiple back-ends
+description:      Simple logging abstraction that allows multiple back-ends
+license:          MIT
+license-file:     LICENSE
+copyright:        (c) 2014-2016 Simon Hengel
+author:           Simon Hengel <sol@typeful.net>
+maintainer:       Simon Hengel <sol@typeful.net>
+category:         System
+
+github: sol/logging-facade
+
+ghc-options: -Wall
+
+library:
+  source-dirs: src
+  dependencies:
+    - base == 4.*
+    - transformers
+
+tests:
+  spec:
+    source-dirs: test
+    main: Spec.hs
+    dependencies:
+      - base == 4.*
+      - logging-facade
+      - hspec == 2.*
