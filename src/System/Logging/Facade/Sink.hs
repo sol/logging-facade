@@ -8,7 +8,7 @@ module System.Logging.Facade.Sink (
 ) where
 
 import           Control.Concurrent
-import           Data.IORef
+import           Data.IORef.Compat
 import           System.IO
 import           System.IO.Unsafe (unsafePerformIO)
 import           Control.Exception
