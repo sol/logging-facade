@@ -21,8 +21,12 @@ type LogSink = LogRecord -> IO ()
 
 -- use the unsafePerformIO hack to share one sink across a process
 logSink :: IORef LogSink
-logSink = unsafePerformIO (defaultLogSink >>= newIORef)
 {-# NOINLINE logSink #-}
+logSink = unsafePerformIO action
+  where
+    action = do
+      hSetBuffering stderr LineBuffering
+      defaultLogSink >>= newIORef
 
 -- | Return the global log sink.
 getLogSink :: IO LogSink
