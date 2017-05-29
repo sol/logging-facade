@@ -10,7 +10,9 @@ you need for whatever logging backend you're going for.
 `logging-facade` itself only depends on libraries that ship with `ghc`.
 
 `logging-facade` has a sensible default: logging to `stderr`. And there are
-back ends for syslog and [journald](https://en.wikipedia.org/wiki/Systemd#journald):
+back ends for both [syslog](http://pubs.opengroup.org/onlinepubs/9699919799/functions/syslog.html)
+and [journald](https://en.wikipedia.org/wiki/Systemd#journald):
 
  * [logsink](https://github.com/sol/logsink#readme)
- * [logging-facade-journald](https://github.com/zalora/logging-facade-journald).
+ * [logging-facade-journald](https://github.com/zalora/logging-facade-journald)
+ * [logging-facade-syslog](http://hackage.haskell.org/package/logging-facade-syslog)
