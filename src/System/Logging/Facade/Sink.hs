@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module System.Logging.Facade.Sink (
   LogSink
 , defaultLogSink
@@ -57,3 +58,10 @@ defaultLogSink_ mvar record = withMVar mvar (\() -> hPutStrLn stderr output)
 formatLocation :: Location -> ShowS
 formatLocation loc = showString (locationFile loc) . colon . shows (locationLine loc) . colon . shows (locationColumn loc)
   where colon = showString ":"
+
+#if !MIN_VERSION_base(4,6,0)
+atomicWriteIORef :: IORef a -> a -> IO ()
+atomicWriteIORef ref a = do
+    x <- atomicModifyIORef ref (\_ -> (a, ()))
+    x `seq` return ()
+#endif

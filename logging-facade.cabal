@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.11.2.
+-- This file has been generated from package.yaml by hpack version 0.17.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -10,7 +10,7 @@ homepage:         https://github.com/sol/logging-facade#readme
 bug-reports:      https://github.com/sol/logging-facade/issues
 license:          MIT
 license-file:     LICENSE
-copyright:        (c) 2014-2016 Simon Hengel
+copyright:        (c) 2014-2017 Simon Hengel
 author:           Simon Hengel <sol@typeful.net>
 maintainer:       Simon Hengel <sol@typeful.net>
 build-type:       Simple
@@ -30,6 +30,8 @@ library
       System.Logging.Facade.Class
       System.Logging.Facade.Sink
       System.Logging.Facade.Types
+  other-modules:
+      Paths_logging_facade
   build-depends:
       base == 4.*
     , transformers
