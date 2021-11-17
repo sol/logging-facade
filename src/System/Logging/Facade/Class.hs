@@ -4,9 +4,7 @@ module System.Logging.Facade.Class where
 
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Cont
-import           Control.Monad.Trans.Error
 import           Control.Monad.Trans.Identity
-import           Control.Monad.Trans.List
 import           Control.Monad.Trans.Maybe
 import           Control.Monad.Trans.RWS.Lazy
 import qualified Control.Monad.Trans.RWS.Strict as Strict
@@ -27,6 +25,17 @@ import           Data.Monoid
 import           System.Logging.Facade.Sink
 import           System.Logging.Facade.Types
 
+#if !MIN_VERSION_transformers(0,6,0)
+import           Control.Monad.Trans.List
+import           Control.Monad.Trans.Error
+
+instance (Logging m) => Logging (ListT m) where
+  consumeLogRecord = lift . consumeLogRecord
+
+instance (Error e, Logging m) => Logging (ErrorT e m) where
+  consumeLogRecord = lift . consumeLogRecord
+#endif
+
 -- | A type class for monads with logging support
 class Monad m => Logging m where
   consumeLogRecord :: LogRecord -> m ()
@@ -41,14 +50,9 @@ instance Logging IO where
 instance (Logging m) => Logging (ContT r m) where
   consumeLogRecord = lift . consumeLogRecord
 
-instance (Error e, Logging m) => Logging (ErrorT e m) where
-  consumeLogRecord = lift . consumeLogRecord
-
 instance (Logging m) => Logging (IdentityT m) where
   consumeLogRecord = lift . consumeLogRecord
 
-instance (Logging m) => Logging (ListT m) where
-  consumeLogRecord = lift . consumeLogRecord
 
 instance (Logging m) => Logging (MaybeT m) where
   consumeLogRecord = lift . consumeLogRecord
